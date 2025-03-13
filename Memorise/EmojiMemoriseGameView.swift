@@ -13,7 +13,9 @@ struct EmojiMemoriseGameView: View {
     var body: some View {
         VStack {
             ScrollView {
-                cards.padding()
+                cards
+                    .padding()
+                    .animation(.bouncy.speed(0.8), value: viewModel.cards)
             }
             Button("Shuffle") {
                 viewModel.shuffle()
@@ -23,10 +25,13 @@ struct EmojiMemoriseGameView: View {
     
     var cards: some View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 85))]) {
-            ForEach(viewModel.cards.indices, id: \.self) { index in
-                CardView(card: viewModel.cards[index])
+            ForEach(viewModel.cards) { card in
+                CardView(card)
                     .aspectRatio(2/3, contentMode: .fit)
                     .padding(1)
+                    .onTapGesture {
+                        viewModel.choose(card)
+                    }
             }
         }
         .foregroundColor(.orange)
@@ -37,18 +42,24 @@ struct EmojiMemoriseGameView: View {
 struct CardView: View {
     let card: MemoriseModel.Card
     
+    init(_ card: MemoriseModel.Card) {
+        self.card = card
+    }
+    
     var body: some View {
         let box = RoundedRectangle(cornerRadius: 12)
         ZStack {
             Group {
+                box.fill(Color.white)
                 box.strokeBorder(lineWidth: 2)
                 Text(card.content)
                     .font(.system(size: 100))
                     .minimumScaleFactor(0.1)
                     .aspectRatio(1, contentMode: .fit)
             }
-            box.fill().opacity(card.isFaceUp ? 0 : 1)
+            box.opacity(card.isFaceUp ? 0 : 1)
         }
+        .opacity(card.isFaceUp || !card.isMatched ? 1 : 0)
     }
 }
 
